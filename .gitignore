@@ -1,0 +1,55 @@
+# Archivos compilados
+*.o
+*.so
+*.a
+*.out
+
+# Ejecutable
+main
+
+# Directorios generados por compilación
+obj/
+lib/
+
+# Archivos de depuración
+*.dSYM/
+*.su
+*.idb
+*.pdb
+core
+vgcore.*
+
+# Archivos temporales del compilador
+*.gch
+*.pch
+
+# Archivos de CMake (si decides usarlo)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile.bak
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Archivos de profiling
+*.gcda
+*.gcno
+*.gcov
+
+# Archivos de documentación generada
+docs/html/
+docs/latex/
+
+# Logs
+*.log
+
+# Archivos de backup
+*.bak
+*.backup
+*~

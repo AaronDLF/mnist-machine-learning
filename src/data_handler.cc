@@ -58,7 +58,7 @@ void data_handler::read_feature_vector(std::string path)
 void data_handler::read_feature_labels(std::string path)
 {
   uint32_t header[2]; // Magic number and number of items
-  unsigned char bytes[2];
+  unsigned char bytes[4];
   FILE *f = fopen(path.c_str(),"r");
   if(f)
   {
@@ -84,7 +84,7 @@ void data_handler::read_feature_labels(std::string path)
         exit(1);
       }
     }
-    printf("Succesfully read the file and stored labels.\n", data_array -> size());
+    printf("Succesfully read the file and stored labels.\n");
   } else
   {
     printf("Error finding this file");
@@ -143,9 +143,9 @@ void data_handler::split_data()
     }
   }
 
-  printf ("Training data size: %lu.\n"), train_data -> size();
-  printf ("Test data size: %lu.\n"), test_data -> size();
-  printf ("Validation data size: %lu.\n"), validation_data -> size();
+  printf ("Training data size: %lu.\n", train_data -> size());
+  printf ("Test data size: %lu.\n", test_data -> size());
+  printf ("Validation data size: %lu.\n", validation_data -> size());
 }
 
 void data_handler::count_classes()
@@ -184,4 +184,16 @@ std::vector<data *> * data_handler::get_test_data()
 std::vector<data *> * data_handler::get_validation_data()
 {
   return validation_data;
+}
+
+int main ()
+{
+  data_handler *dh = new data_handler();
+  dh -> read_feature_vector("./files/train-images-idx3-ubyte");
+  dh -> read_feature_labels("./files/train-labels-idx1-ubyte");
+  dh -> split_data();
+  dh -> count_classes();
+
+  return 0;
+
 }
