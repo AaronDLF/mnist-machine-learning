@@ -21,8 +21,83 @@ knn::~knn(){
 
 void knn::find_knearest(data * query_point)
 {
-  
+  // Initialize a dynamic vector to store pointers to the k nearest neighbors
+  neighbors = new std::vector<data *>;
+
+  // Initialize min with the maximum possible double value to ensure any real distance
+  // will be smaller and get properly compared
+  double min = std::numeric_limits<double>::max();
+
+  // Keeps track of the previous minimum distance found to avoid selecting the same neighbor twice
+  double previous_min = min;
+
+  // Will store the index/position of the current nearest neighbor in the training data
+  int index = 0;
+
+  // Outer loop: runs k times, finding one neighbor per iteration
+  for (int i = 0 ; i < k ; i++)
+  {
+    // First iteration (i == 0): Find the closest neighbor to the query point
+    if(i == 0)
+    {
+      // Inner loop: iterate through all training data points
+      for (int j = 0; j < train_data -> size(); j++)
+      {
+        // Calculate Euclidean distance between query_point and current training data point
+        double distance = calculate_distance(query_point, train_data -> at(j));
+
+        // Store the calculated distance in the training data point
+        train_data -> at(i) -> set_distance(distance);
+
+        // If this distance is smaller than the current minimum, update min and index
+        if (distance < min)
+        {
+          min = distance;
+          index = j;
+        }
+      }
+
+      // Add the closest neighbor (at position index) to the neighbors vector
+      neighbors -> push_back(train_data -> at(index));
+
+      // Save the current minimum distance as the previous minimum
+      // This will be used in the next iteration to avoid duplicates
+      previous_min = min;
+
+      // Reset min to maximum value for the next neighbor search
+      min = std::numeric_limits<double>::max();
+    }
+    // Subsequent iterations (i > 0): Find the next k-1 nearest neighbors
+    else
+    {
+      // Inner loop: iterate through all training data points again
+      for (int j=0 ; j < train_data -> size(); j++)
+      {
+        // Calculate distance between query_point and current training data point
+        double distance = calculate_distance(query_point, train_data ->at(j));
+
+        // Only consider distances that are:
+        // 1. Greater than previous_min (avoids selecting previously found neighbors)
+        // 2. Smaller than current min (finds the next closest unselected neighbor)
+        if (distance > previous_min && distance < min)
+        {
+          min = distance;
+          index = j;
+        }
+      }
+
+      // Add the next nearest neighbor (at position index) to the neighbors vector
+      neighbors -> push_back(train_data -> at(index));
+
+      // Update previous_min to the current minimum distance found
+      previous_min = min;
+
+      // Reset min to maximum value for the next neighbor search
+      min = std::numeric_limits<double>::max();
+    }
+  }
 }
+
 void knn::set_training_data(std::vector<data * > * vect)
 {
   train_data = vect;
