@@ -73,8 +73,8 @@ void knn::find_knearest(data * query_point)
       // Inner loop: iterate through all training data points again
       for (int j=0 ; j < train_data -> size(); j++)
       {
-        // Calculate distance between query_point and current training data point
-        double distance = calculate_distance(query_point, train_data ->at(j));
+        // Calculate the distance using the get_distance method
+        double distance = train_data  -> at(j) -> get_distance();
 
         // Only consider distances that are:
         // 1. Greater than previous_min (avoids selecting previously found neighbors)
@@ -145,7 +145,7 @@ int knn::predict()
       best = kv.first;
     }
   }
-  delete neighbors;
+  neighbors -> clear();
   return best;
 }
 
@@ -159,7 +159,7 @@ double knn::calculate_distance(data * querypoint, data * input)
   }
 
   #ifdef EUCLID
-    for (unsigned i; i < querypoint -> get_feature_vector_size())
+    for (unsigned i; i < querypoint -> get_feature_vector_size(); i++)
     {
       distance = pow(querypoint -> get_feature_vector() -> at(i) - input -> get_feature_vector() -> at(i), 2);
     }
@@ -223,8 +223,8 @@ double knn::test_performance()
 int main()
 {
   data_handler * dh = new data_handler();
-  dh -> read_feature_vector("./files/train-images-idx3-ubyte");
-  dh -> read_feature_labels("./files/train-labels-idx1-ubyte");
+  dh -> read_feature_vector("../files/train-images-idx3-ubyte");
+  dh -> read_feature_labels("../files/train-labels-idx1-ubyte");
   dh -> split_data();
   dh -> count_classes();
 
