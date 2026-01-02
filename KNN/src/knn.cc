@@ -47,7 +47,7 @@ void knn::find_knearest(data * query_point)
         double distance = calculate_distance(query_point, train_data -> at(j));
 
         // Store the calculated distance in the training data point
-        train_data -> at(i) -> set_distance(distance);
+        train_data -> at(j) -> set_distance(distance);
 
         // If this distance is smaller than the current minimum, update min and index
         if (distance < min)
@@ -73,8 +73,8 @@ void knn::find_knearest(data * query_point)
       // Inner loop: iterate through all training data points again
       for (int j=0 ; j < train_data -> size(); j++)
       {
-        // Calculate the distance using the get_distance method
-        double distance = train_data  -> at(j) -> get_distance();
+        // Calculate distance between query_point and current training data point
+        double distance = train_data -> at(j) -> get_distance();
 
         // Only consider distances that are:
         // 1. Greater than previous_min (avoids selecting previously found neighbors)
@@ -159,16 +159,15 @@ double knn::calculate_distance(data * querypoint, data * input)
   }
 
   #ifdef EUCLID
-    for (unsigned i; i < querypoint -> get_feature_vector_size(); i++)
+    for (unsigned i=0; i < querypoint -> get_feature_vector_size(); i++)
     {
-      distance = pow(querypoint -> get_feature_vector() -> at(i) - input -> get_feature_vector() -> at(i), 2);
+      distance += pow(querypoint -> get_feature_vector() -> at(i) - input -> get_feature_vector() -> at(i), 2);
     }
     distance = sqrt(distance);
-
+    return distance;
   #elif defined MANHATTAN
     //Here comes the implementation
   #endif
-  return distance;
 }
 
 double knn::validate_performance()
