@@ -179,6 +179,7 @@ double knn::validate_performance()
   {
     find_knearest(query_point);
     int predicted_label = predict();
+    printf("%d -> %d \n", predicted_label, query_point -> get_label());
     if (predicted_label == query_point -> get_label())
     {
       count++;
