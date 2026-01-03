@@ -53,3 +53,6 @@ docs/latex/
 *.bak
 *.backup
 *~
+
+compile_commands.json
+.cache/
