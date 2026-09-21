@@ -56,3 +56,10 @@ docs/latex/
 
 compile_commands.json
 .cache/
+
+# CodeGraph index
+.codegraph/
+
+# Local AI tooling state (skill registry, Claude Code settings)
+.atl/
+.claude/

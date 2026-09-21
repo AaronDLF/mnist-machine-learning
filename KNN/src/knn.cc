@@ -1,64 +1,59 @@
 #include "knn.hpp"
+#include "data_handler.hpp"
+#include "stdint.h"
 #include <cmath>
 #include <limits>
 #include <map>
-#include "stdint.h"
-#include "data_handler.hpp"
 
+knn::knn(int val) { k = val; }
 
-knn::knn(int val)
-{
-  k = val;
+knn::knn() {
+  // Nothing inside
 }
 
-knn::knn(){
-  //Nothing inside
+knn::~knn() {
+  // Nothing inside
 }
 
-knn::~knn(){
-  //Nothing inside
-}
-
-void knn::find_knearest(data * query_point)
-{
+void knn::find_knearest(data *query_point) {
   // Initialize a dynamic vector to store pointers to the k nearest neighbors
   neighbors = new std::vector<data *>;
 
-  // Initialize min with the maximum possible double value to ensure any real distance
-  // will be smaller and get properly compared
+  // Initialize min with the maximum possible double value to ensure any real
+  // distance will be smaller and get properly compared
   double min = std::numeric_limits<double>::max();
 
-  // Keeps track of the previous minimum distance found to avoid selecting the same neighbor twice
+  // Keeps track of the previous minimum distance found to avoid selecting the
+  // same neighbor twice
   double previous_min = min;
 
-  // Will store the index/position of the current nearest neighbor in the training data
+  // Will store the index/position of the current nearest neighbor in the
+  // training data
   int index = 0;
 
   // Outer loop: runs k times, finding one neighbor per iteration
-  for (int i = 0 ; i < k ; i++)
-  {
+  for (int i = 0; i < k; i++) {
     // First iteration (i == 0): Find the closest neighbor to the query point
-    if(i == 0)
-    {
+    if (i == 0) {
       // Inner loop: iterate through all training data points
-      for (int j = 0; j < train_data -> size(); j++)
-      {
-        // Calculate Euclidean distance between query_point and current training data point
-        double distance = calculate_distance(query_point, train_data -> at(j));
+      for (int j = 0; j < train_data->size(); j++) {
+        // Calculate Euclidean distance between query_point and current training
+        // data point
+        double distance = calculate_distance(query_point, train_data->at(j));
 
         // Store the calculated distance in the training data point
-        train_data -> at(j) -> set_distance(distance);
+        train_data->at(j)->set_distance(distance);
 
-        // If this distance is smaller than the current minimum, update min and index
-        if (distance < min)
-        {
+        // If this distance is smaller than the current minimum, update min and
+        // index
+        if (distance < min) {
           min = distance;
           index = j;
         }
       }
 
       // Add the closest neighbor (at position index) to the neighbors vector
-      neighbors -> push_back(train_data -> at(index));
+      neighbors->push_back(train_data->at(index));
 
       // Save the current minimum distance as the previous minimum
       // This will be used in the next iteration to avoid duplicates
@@ -68,26 +63,27 @@ void knn::find_knearest(data * query_point)
       min = std::numeric_limits<double>::max();
     }
     // Subsequent iterations (i > 0): Find the next k-1 nearest neighbors
-    else
-    {
+    else {
       // Inner loop: iterate through all training data points again
-      for (int j=0 ; j < train_data -> size(); j++)
-      {
-        // Calculate distance between query_point and current training data point
-        double distance = train_data -> at(j) -> get_distance();
+      for (int j = 0; j < train_data->size(); j++) {
+        // Calculate distance between query_point and current training data
+        // point
+        double distance = train_data->at(j)->get_distance();
 
         // Only consider distances that are:
-        // 1. Greater than previous_min (avoids selecting previously found neighbors)
-        // 2. Smaller than current min (finds the next closest unselected neighbor)
-        if (distance > previous_min && distance < min)
-        {
+        // 1. Greater than previous_min (avoids selecting previously found
+        // neighbors)
+        // 2. Smaller than current min (finds the next closest unselected
+        // neighbor)
+        if (distance > previous_min && distance < min) {
           min = distance;
           index = j;
         }
       }
 
-      // Add the next nearest neighbor (at position index) to the neighbors vector
-      neighbors -> push_back(train_data -> at(index));
+      // Add the next nearest neighbor (at position index) to the neighbors
+      // vector
+      neighbors->push_back(train_data->at(index));
 
       // Update previous_min to the current minimum distance found
       previous_min = min;
@@ -98,169 +94,138 @@ void knn::find_knearest(data * query_point)
   }
 }
 
-void knn::set_training_data(std::vector<data * > * vect)
-{
-  train_data = vect;
-}
+void knn::set_k(int val) { k = val; }
 
-void knn::set_test_data(std::vector<data *> * vect)
-{
-  test_data = vect;
-}
-void knn::set_validation_data(std::vector<data *> * vect)
-{
-  validation_data = vect;
-}
-
-void knn::set_k(int val)
-{
-  k = val;
-}
-
-int knn::predict()
-{
+int knn::predict() {
   std::map<uint8_t, int> class_freq;
 
   // Count the occurrences of each label among the k nearest neighbors
-  for (int i = 0; i < neighbors -> size(); i++)
-  {
-    if (class_freq.find(neighbors -> at(i) -> get_label()) == class_freq.end())
-    {
-      class_freq[neighbors -> at(i) -> get_label()] = 1;
-    }
-    else
-    {
-      class_freq[neighbors -> at(i) -> get_label()] += 1;
+  for (int i = 0; i < neighbors->size(); i++) {
+    if (class_freq.find(neighbors->at(i)->get_label()) == class_freq.end()) {
+      class_freq[neighbors->at(i)->get_label()] = 1;
+    } else {
+      class_freq[neighbors->at(i)->get_label()] += 1;
     }
   }
 
   int best = 0;
   int max = 0;
 
-  for (auto kv: class_freq)
-  {
-    if (kv.second > max)
-    {
+  for (auto kv : class_freq) {
+    if (kv.second > max) {
       max = kv.second;
       best = kv.first;
     }
   }
-  neighbors -> clear();
+  neighbors->clear();
   return best;
 }
 
-double knn::calculate_distance(data * querypoint, data * input)
-{
+double knn::calculate_distance(data *querypoint, data *input) {
   double distance = 0.0;
-  if (querypoint -> get_feature_vector_size() != input -> get_feature_vector_size())
-  {
+  if (querypoint->get_feature_vector_size() !=
+      input->get_feature_vector_size()) {
     printf("The feature vector size does not match.\n");
     exit(1);
   }
 
-  #ifdef EUCLID
-    for (unsigned i=0; i < querypoint -> get_feature_vector_size(); i++)
-    {
-      distance += pow(querypoint -> get_feature_vector() -> at(i) - input -> get_feature_vector() -> at(i), 2);
-    }
-    distance = sqrt(distance);
-    return distance;
-  #elif defined MANHATTAN
-    //Here comes the implementation
-  #endif
+#ifdef EUCLID
+  for (unsigned i = 0; i < querypoint->get_feature_vector_size(); i++) {
+    distance += pow(querypoint->get_feature_vector()->at(i) -
+                        input->get_feature_vector()->at(i),
+                    2);
+  }
+  distance = sqrt(distance);
+  return distance;
+#elif defined MANHATTAN
+  // Here comes the implementation
+#endif
 }
 
-double knn::validate_performance()
-{
+double knn::validate_performance() {
   double current_performance = 0;
   int count = 0;
   int data_index = 0;
-  for(data * query_point : *validation_data)
-  {
+  for (data *query_point : *validation_data) {
     find_knearest(query_point);
     int predicted_label = predict();
-    printf("%d -> %d \n", predicted_label, query_point -> get_label());
-    if (predicted_label == query_point -> get_label())
-    {
+    printf("%d -> %d \n", predicted_label, query_point->get_label());
+    if (predicted_label == query_point->get_label()) {
       count++;
     }
     data_index++;
     current_performance = (double)count * 100.0 / (double)data_index;
-    printf("Current performance = %.2f %% after %d samples\r", current_performance, data_index); // Carriage return to overwrite the same line
+    printf("Current performance = %.2f %% after %d samples\r",
+           current_performance,
+           data_index); // Carriage return to overwrite the same line
   }
-  double validation_performance = (double)count * 100.0 / (double)validation_data -> size();
-  printf("\nValidation perfomance for K = %d: %.2f %% \n", k, validation_performance);
+  double validation_performance =
+      (double)count * 100.0 / (double)validation_data->size();
+  printf("\nValidation perfomance for K = %d: %.2f %% \n", k,
+         validation_performance);
 
   return validation_performance;
-
 }
 
-double knn::test_performance()
-{
+double knn::test_performance() {
   double current_performance = 0;
   int count = 0;
   int data_index = 0;
 
-  for (data * query_point: *test_data )
-  {
+  for (data *query_point : *test_data) {
     find_knearest(query_point);
     int prediction = predict();
 
-    if (prediction == query_point -> get_label())
-    {
-      count ++;
+    if (prediction == query_point->get_label()) {
+      count++;
     }
-    data_index ++;
+    data_index++;
     current_performance = (double)count * 100.0 / (double)data_index;
-    printf("Current performance = %.2f %% after %d samples\r", current_performance, data_index); // Carriage return to overwrite the same line
+    printf("Current performance = %.2f %% after %d samples\r",
+           current_performance,
+           data_index); // Carriage return to overwrite the same line
   }
-  double test_performance = (double)count * 100.0 / (double)test_data -> size();
+  double test_performance = (double)count * 100.0 / (double)test_data->size();
   printf("\nTested perfomance = %.2f %% \n", test_performance);
 
   return test_performance;
 }
 
-int main()
-{
-  data_handler * dh = new data_handler();
-  dh -> read_feature_vector("../files/train-images-idx3-ubyte");
-  dh -> read_feature_labels("../files/train-labels-idx1-ubyte");
-  dh -> split_data();
-  dh -> count_classes();
+int main() {
+  data_handler *dh = new data_handler();
+  dh->read_feature_vector("../files/train-images-idx3-ubyte");
+  dh->read_feature_labels("../files/train-labels-idx1-ubyte");
+  dh->split_data();
+  dh->count_classes();
 
-  //Creating a new element knn from constructor
-  knn * knearest = new knn();
+  // Creating a new element knn from constructor
+  knn *knearest = new knn();
 
-  //Setting the data we are going to work with
-  knearest -> set_training_data(dh -> get_train_data());
-  knearest -> set_test_data(dh -> get_test_data());
-  knearest -> set_validation_data(dh -> get_validation_data());
+  // Setting the data we are going to work with
+  knearest->set_training_data(dh->get_train_data());
+  knearest->set_test_data(dh->get_test_data());
+  knearest->set_validation_data(dh->get_validation_data());
 
-  //Checking performance for k <= 4
+  // Checking performance for k <= 4
   double performance = 0.0;
   double best_performance = 0.0;
   int best_k = 1;
 
-  for (int i = 1; i <=4 ; i++)
-  {
-    if (i == 1)
-    {
-      knearest -> set_k(i);
-      performance = knearest -> validate_performance();
+  for (int i = 1; i <= 4; i++) {
+    if (i == 1) {
+      knearest->set_k(i);
+      performance = knearest->validate_performance();
       best_performance = performance;
-    } else
-    {
-      knearest -> set_k(i);
-      performance = knearest -> validate_performance();
+    } else {
+      knearest->set_k(i);
+      performance = knearest->validate_performance();
 
-      if (performance > best_performance)
-      {
+      if (performance > best_performance) {
         best_performance = performance;
         best_k = i;
       }
     }
   }
-  knearest -> set_k(best_k);
-  knearest -> test_performance();
-
+  knearest->set_k(best_k);
+  knearest->test_performance();
 }

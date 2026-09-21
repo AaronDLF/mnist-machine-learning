@@ -1,27 +1,31 @@
 CC=g++
 INCLUDE_DIR := ./include
 SRC := ./src
-CFLAGS := -shared -std=c++11 -g
+OBJ_DIR := ./obj
+LIB_DIR := ./lib
+CFLAGS := -std=c++11 -g -O2
 LIB_DATA := libdata.so
 
-all : $(LIB_DATA)
+# Every .cc listed here becomes obj/<name>.o and goes inside libdata.so
+SOURCES := $(SRC)/data_handler.cc $(SRC)/data.cc $(SRC)/common.cc
+OBJECTS := $(patsubst $(SRC)/%.cc,$(OBJ_DIR)/%.o,$(SOURCES))
 
-$(LIB_DATA) : libdir objdir obj/data_handler.o obj/data.o
-	$(CC) $(CFLAGS) -o ./lib/$(LIB_DATA) obj/*.o
-	rm -r ./obj
+# Every header: if one changes, the objects are rebuilt
+HEADERS := $(wildcard $(INCLUDE_DIR)/*.hpp)
 
-libdir :
-	mkdir -p ./lib
+.PHONY: all clean
 
-objdir :
-	mkdir -p ./obj
+all : $(LIB_DIR)/$(LIB_DATA)
 
-obj/data_handler.o : $(SRC)/data_handler.cc
-	$(CC) -fPIC $(CFLAGS) -o obj/data_handler.o -I$(INCLUDE_DIR) -c $(SRC)/data_handler.cc
+# Link step: all .o files -> one shared library
+$(LIB_DIR)/$(LIB_DATA) : $(OBJECTS)
+	mkdir -p $(LIB_DIR)
+	$(CC) -shared -o $@ $(OBJECTS)
 
-obj/data.o : $(SRC)/data.cc
-	$(CC) -fPIC $(CFLAGS) -o obj/data.o -I$(INCLUDE_DIR) -c $(SRC)/data.cc
+# Compile step: one rule for every obj/X.o built from src/X.cc
+$(OBJ_DIR)/%.o : $(SRC)/%.cc $(HEADERS)
+	mkdir -p $(OBJ_DIR)
+	$(CC) -fPIC $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
-clean:
-	rm -rf ./lib
-	rm -rf ./obj
+clean :
+	rm -rf $(LIB_DIR) $(OBJ_DIR)
